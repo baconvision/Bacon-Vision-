@@ -2,6 +2,7 @@
   "expo": {
     "name": "Bacon Vision",
     "slug": "bacon-vision",
+    "owner": "baconvisionapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
