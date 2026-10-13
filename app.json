@@ -5,18 +5,18 @@
     "owner": "baconvisionapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0a0a0a",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.baconvision.app",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "infoPlist": {
         "NSCameraUsageDescription": "Bacon Vision uses your camera to capture reference photos for AI generation.",
         "NSPhotoLibraryUsageDescription": "Bacon Vision accesses your photo library to upload reference images.",
@@ -29,7 +29,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./adaptive-icon.png",
         "backgroundColor": "#0a0a0a"
       },
       "package": "com.baconvision.app",
@@ -51,3 +51,4 @@
     }
   }
 }
+
