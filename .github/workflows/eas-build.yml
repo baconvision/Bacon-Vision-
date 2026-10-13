@@ -1,40 +1,59 @@
 name: EAS Build & Submit
-
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths: [App.tsx, app.json, babel.config.js, package.json, package-lock.json, eas.json, navigation.test.cjs, icon.png, splash.png, adaptive-icon.png]
   workflow_dispatch:
-
+    inputs:
+      build_id:
+        description: Existing successful EAS build UUID; leave blank to build first
+        required: false
+        type: string
+        default: ''
+      asc_app_id:
+        description: Existing App Store Connect app ID, only if EAS requires it
+        required: false
+        type: string
+        default: ''
+permissions:
+  contents: read
 jobs:
   build-ios:
     runs-on: ubuntu-latest
-
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install dependencies
         run: npm install
-
+      - name: Verify navigation and build assets
+        run: npm test
+      - name: Verify iOS JavaScript bundle
+        if: ${{ inputs.build_id == '' }}
+        run: npx expo export --platform ios --output-dir bundle-check
       - name: Install EAS CLI
         run: npm install --global eas-cli
-
       - name: Verify Expo Login
         run: eas whoami
-
       - name: Build iOS for App Store
-        run: eas build --platform ios --profile production --non-interactive
-
-      - name: Submit to App Store
-        run: eas submit --platform ios --profile production --non-interactive
+        id: build
+        if: ${{ inputs.build_id == '' }}
+        run: |
+          eas build --platform ios --profile production --non-interactive --json > build-result.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('build-result.json','utf8')); const id=(Array.isArray(r)?r[0]:r).id; if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Invalid build ID'); fs.appendFileSync(process.env.GITHUB_OUTPUT,'build_id='+id+'\n');"
+      - name: Submit exact archive to TestFlight
         env:
+          EAS_BUILD_ID: ${{ inputs.build_id || steps.build.outputs.build_id }}
+          ASC_APP_ID: ${{ inputs.asc_app_id }}
           EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          node -e "if(!/^[0-9a-f-]{36}$/i.test(process.env.EAS_BUILD_ID||''))throw Error('Invalid archive ID'); if(process.env.ASC_APP_ID){if(!/^[0-9]+$/.test(process.env.ASC_APP_ID))throw Error('Invalid app ID'); const fs=require('fs'); const p=JSON.parse(fs.readFileSync('eas.json','utf8')); p.submit.production.ios.ascAppId=process.env.ASC_APP_ID; fs.writeFileSync('eas.json',JSON.stringify(p,null,2));}"
+          eas submit --platform ios --profile production --id "$EAS_BUILD_ID" --non-interactive
+
