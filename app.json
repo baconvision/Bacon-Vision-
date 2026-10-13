@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.baconvision.app",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "NSCameraUsageDescription": "Bacon Vision uses your camera to capture reference photos for AI generation.",
         "NSPhotoLibraryUsageDescription": "Bacon Vision accesses your photo library to upload reference images.",
@@ -51,4 +51,3 @@
     }
   }
 }
-

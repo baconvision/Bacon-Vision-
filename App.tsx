@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { StatusBar, StyleSheet, ActivityIndicator, View, Share } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -36,12 +37,14 @@ export default function App() {
     true;
   `;
   return (
-    <View style={styles.container}>
+    <SafeAreaProvider>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
       <WebView
         ref={webViewRef}
         source={{ uri: APP_URL }}
         style={styles.webview}
+        contentInsetAdjustmentBehavior="never"
         onLoad={handleLoad}
         onLoadEnd={handleLoad}
         onMessage={handleMessage}
@@ -57,7 +60,8 @@ export default function App() {
         onShouldStartLoadWithRequest={(request) => allowAppNavigation(request.url)}
       />
       {loading && <View style={styles.loader}><ActivityIndicator size="large" color="#8b5cf6" /></View>}
-    </View>
+    </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 const styles = StyleSheet.create({
@@ -65,3 +69,4 @@ const styles = StyleSheet.create({
   webview: { flex: 1, backgroundColor: '#0a0a0a' },
   loader: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0a0a0a', justifyContent: 'center', alignItems: 'center' },
 });
+

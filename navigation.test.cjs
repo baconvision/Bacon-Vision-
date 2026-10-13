@@ -27,12 +27,15 @@ const rejected = [
 for (const url of accepted) assert.equal(allow(url), true, url);
 for (const url of rejected) assert.equal(allow(url), false, url);
 const app = JSON.parse(fs.readFileSync('app.json','utf8')).expo;
-assert.equal(app.ios.buildNumber, '3');
+assert.equal(app.ios.buildNumber, '4');
 for (const path of [app.icon, app.splash.image, app.android.adaptiveIcon.foregroundImage]) {
   assert.ok(fs.statSync(path).size > 0, path);
 }
 assert.equal(ts.transpileModule(source, {
   compilerOptions:{jsx:ts.JsxEmit.ReactJSX},reportDiagnostics:true
 }).diagnostics.length, 0, 'App.tsx must parse');
-console.log('18 navigation cases, build number, assets and App syntax passed');
+assert.match(source, /<SafeAreaProvider>/, 'native safe-area measurements must be provided');
+assert.match(source, /<SafeAreaView[^>]*edges=\{\['top', 'bottom', 'left', 'right'\]\}/, 'WebView must sit inside all native safe-area edges');
+assert.match(source, /contentInsetAdjustmentBehavior="never"/, 'WebView must not apply a second automatic inset');
+console.log('Safe-area layout, 18 navigation cases, build number, assets and App syntax passed');
 
