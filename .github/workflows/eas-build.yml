@@ -51,7 +51,7 @@ jobs:
       - name: Submit exact archive to TestFlight
         env:
           EAS_BUILD_ID: ${{ inputs.build_id || steps.build.outputs.build_id }}
-          ASC_APP_ID: ${{ inputs.asc_app_id }}
+          ASC_APP_ID: ${{ inputs.asc_app_id || '6814215560' }}
           EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           node -e "if(!/^[0-9a-f-]{36}$/i.test(process.env.EAS_BUILD_ID||''))throw Error('Invalid archive ID'); if(process.env.ASC_APP_ID){if(!/^[0-9]+$/.test(process.env.ASC_APP_ID))throw Error('Invalid app ID'); const fs=require('fs'); const p=JSON.parse(fs.readFileSync('eas.json','utf8')); p.submit.production.ios.ascAppId=process.env.ASC_APP_ID; fs.writeFileSync('eas.json',JSON.stringify(p,null,2));}"
