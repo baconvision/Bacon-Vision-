@@ -1,28 +1,26 @@
 import React, { useRef, useState } from 'react';
-import {
-  StatusBar,
-  StyleSheet,
-  ActivityIndicator,
-  View,
-  Share,
-  Platform,
-} from 'react-native';
+import { StatusBar, StyleSheet, ActivityIndicator, View, Share } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
-
 const APP_URL = 'https://bcnvzn.com';
+
+export function allowAppNavigation(url: string): boolean {
+  // Keep embedded Stripe checkout inside the app; reject lookalike hosts.
+  if (url === 'about:blank' || url === 'about:srcdoc') return true;
+  if (/^blob:https:\/\/bcnvzn\.com\//i.test(url)) return true;
+  return /^https:\/\/bcnvzn\.com(?::443)?(?:[/?#]|$)/i.test(url) ||
+    /^https:\/\/(?:[a-z0-9-]+\.)*stripe\.com(?::443)?(?:[/?#]|$)/i.test(url);
+}
 
 export default function App() {
   const webViewRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
-
   const handleLoad = () => {
     setLoading(false);
     SplashScreen.hideAsync();
   };
-
   const handleMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -31,15 +29,12 @@ export default function App() {
       }
     } catch {}
   };
-
   const injectedJS = `
-    // Inject native share support
     window.nativeShare = function(url, message) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'share', url, message }));
     };
     true;
   `;
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
@@ -48,6 +43,7 @@ export default function App() {
         source={{ uri: APP_URL }}
         style={styles.webview}
         onLoad={handleLoad}
+        onLoadEnd={handleLoad}
         onMessage={handleMessage}
         injectedJavaScript={injectedJS}
         pullToRefreshEnabled
@@ -58,38 +54,14 @@ export default function App() {
         startInLoadingState={false}
         allowsFullscreenVideo
         setSupportMultipleWindows={false}
-        onShouldStartLoadWithRequest={(request) => {
-          // Keep navigation inside the app, open external links in browser
-          if (request.url.startsWith('https://bcnvzn.com') ||
-              request.url.startsWith('about:') ||
-              request.url.startsWith('blob:')) {
-            return true;
-          }
-          return false;
-        }}
+        onShouldStartLoadWithRequest={(request) => allowAppNavigation(request.url)}
       />
-      {loading && (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#8b5cf6" />
-        </View>
-      )}
+      {loading && <View style={styles.loader}><ActivityIndicator size="large" color="#8b5cf6" /></View>}
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a0a0a',
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: '#0a0a0a',
-  },
-  loader: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0a0a0a',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  webview: { flex: 1, backgroundColor: '#0a0a0a' },
+  loader: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0a0a0a', justifyContent: 'center', alignItems: 'center' },
 });
